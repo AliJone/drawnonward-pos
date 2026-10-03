@@ -1,0 +1,61 @@
+volumes:
+    uploads:
+        driver: local
+    logs:
+        driver: local
+    mysql:
+        driver: local
+
+networks:
+    app_net:
+
+
+services:
+    mysql:
+        image: mariadb:10.5
+        container_name: mysql
+        restart: always
+        healthcheck:
+            test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+            interval: 5s
+            timeout: 5s
+            retries: 30
+        expose:
+            - "3306"
+        networks:
+            - app_net
+        volumes:
+            - mysql:/var/lib/mysql:rw
+        environment:
+            - MYSQL_ROOT_PASSWORD=pointofsale
+            - MYSQL_DATABASE=drawnonward
+            - MYSQL_USER=admin
+            - MYSQL_PASSWORD=pointofsale
+    drawnonward:
+        build:
+            context: .
+            args:
+                - USERID=${USERID}
+                - GROUPID=${GROUPID}
+            target: drawnonward_dev
+        container_name: drawnonward_dev
+        restart: always
+        user: "${USERID}:${GROUPID}"
+        depends_on:
+            mysql:
+                condition: service_healthy
+        ports:
+            - "80:80"
+        networks:
+            - app_net
+        volumes:
+            - .:/app
+        environment:
+            - CI_ENVIRONMENT=development
+            - ALLOWED_HOSTNAMES=localhost
+            - MYSQL_USERNAME=admin
+            - MYSQL_PASSWORD=pointofsale
+            - MYSQL_DB_NAME=drawnonward
+            - MYSQL_HOST_NAME=mysql
+            - PHP_TIMEZONE=UTC
+            - XDEBUG_CONFIG=client_host=172.17.0.1

@@ -1,0 +1,33 @@
+
+volumes:
+    uploads:
+        driver: local
+    logs:
+        driver: local
+    mysql:
+        driver: local
+
+networks:
+    app_net:
+
+services:
+    mysql:
+        image: mariadb:10.5
+        container_name: mysql
+        restart: always
+        healthcheck:
+            test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+            interval: 5s
+            timeout: 5s
+            retries: 30
+        expose:
+          - "3306"
+        networks:
+          - app_net
+        volumes:
+          - mysql:/var/lib/mysql:rw
+        environment:
+          - MYSQL_ROOT_PASSWORD=pointofsale
+          - MYSQL_DATABASE=drawnonward
+          - MYSQL_USER=admin
+          - MYSQL_PASSWORD=pointofsale

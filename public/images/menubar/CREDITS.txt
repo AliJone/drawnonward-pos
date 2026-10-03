@@ -1,0 +1,3 @@
+Menubar icons: "Beautiful Flat Icons" by Elegant Themes, converted to SVG by
+Wikimedia Commons user Carl Fredrik (CFCF). Licensed under the GNU GPL v2, see
+the LICENSE file in this folder.
