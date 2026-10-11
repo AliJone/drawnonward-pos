@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Libraries\Sync_lib;
 use App\Models\Employee;
 use App\Models\Module;
 use CodeIgniter\HTTP\Exceptions\RedirectException;
@@ -68,7 +69,8 @@ class Secure_Controller extends BaseController
         $this->global_view_data += [
             'user_info'       => $logged_in_employee_info,
             'controller_name' => $module_id,
-            'config'          => $config
+            'config'          => $config,
+            'sync_status'     => (new Sync_lib())->status(false)
         ];
         view('viewData', $this->global_view_data);
     }

@@ -38,7 +38,7 @@ drawnonward POS is a web-based point of sale system distributed and supported by
 
 ## Installation
 
-See [WINDOWS.md](WINDOWS.md) for the step-by-step Windows guide (Docker Desktop, or XAMPP without Docker), [INSTALL.md](INSTALL.md) for Linux and Docker installs, [BUILD.md](BUILD.md) to build from source, and [UPGRADE.md](UPGRADE.md) to upgrade an existing installation.
+See [WINDOWS.md](WINDOWS.md) for the step-by-step Windows guide (Docker Desktop, or XAMPP without Docker), [INSTALL.md](INSTALL.md) for Linux and Docker installs, [BUILD.md](BUILD.md) to build from source, and [UPGRADE.md](UPGRADE.md) to upgrade an existing installation. To use the POS from more than one place through a shared online database, see [ONLINE.md](ONLINE.md).
 
 Default login after installation:
 

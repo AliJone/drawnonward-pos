@@ -41,6 +41,9 @@
     <li role="presentation">
         <a data-toggle="tab" href="#system_tab" title="<?= lang('Config.system_conf') ?>"><?= lang('Config.system_conf') ?></a>
     </li>
+    <li role="presentation">
+        <a data-toggle="tab" href="#sync_tab" title="<?= lang('Sync.sync_configuration') ?>"><?= lang('Sync.sync') ?></a>
+    </li>
 </ul>
 
 <div class="tab-content">
@@ -79,6 +82,9 @@
     </div>
     <div class="tab-pane" id="system_tab">
         <?= view('configs/system_config') ?>
+    </div>
+    <div class="tab-pane" id="sync_tab">
+        <?= view('configs/sync_config') ?>
     </div>
 </div>
 

@@ -52,6 +52,8 @@ class Login extends BaseController
                 'isLatest'        => $latestVersion === $currentVersion,
                 'latestVersion'   => $latestVersion,
                 'gcaptchaEnabled' => $gcaptchaEnabled,
+                'idleLogout'      => $this->request->getGet('idle') !== null,
+                'takeOverOffer'   => false,
                 'config'           => $config,
                 'validation'       => $validation
             ];
@@ -77,6 +79,8 @@ class Login extends BaseController
 
             if (!$this->validate($rules, $messages)) {
                 $data['hasErrors'] = !empty($validation->getErrors());
+                $data['takeOverOffer'] = session()->get('sync_take_over_offer') === true;
+                session()->remove('sync_take_over_offer');
 
                 return view('login', $data);
             }

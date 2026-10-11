@@ -42,7 +42,7 @@ class Session extends BaseConfig
      * The number of SECONDS you want the session to last.
      * Setting to 0 (zero) means expire when the browser is closed.
      */
-    public int $expiration = 7200;
+    public int $expiration = 1800;
 
     /**
      * --------------------------------------------------------------------------
@@ -130,6 +130,9 @@ class Session extends BaseConfig
     public function __construct()
     {
         parent::__construct();
+
+        // Outlives the idle limit (sync.idleMinutes) so the idle check in IsLoggedIn runs, syncs and releases the lock
+        $this->expiration = ((int) env('sync.idleMinutes', 30) + 15) * 60;
 
         if ($this->driver === DatabaseHandler::class) {
             try {

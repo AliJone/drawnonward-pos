@@ -2,12 +2,14 @@
 
 namespace App\Config\Validation;
 
+use App\Libraries\Sync_lib;
 use App\Models\Employee;
 use CodeIgniter\HTTP\IncomingRequest;
 use Config\Drawnonward;
 use Config\Services;
 use DirectoryIterator;
 use IntlChar;
+use Throwable;
 
 /**
  * @property Employee employee
@@ -53,6 +55,31 @@ class DrawnonwardRules
         }
 
         $password = $data['password'];
+        $sync = new Sync_lib();
+        $takeOver = $this->request->getPost('take_over') !== null;
+
+        try {
+            if ($sync->isOnline()) {
+                $block = $sync->onlineLoginBlock($username, $password, $takeOver);
+                if ($block !== null) {
+                    $error = $block;
+
+                    return false;
+                }
+            } elseif ($sync->isOffline()) {
+                $result = $sync->offlineLogin($username, $password, $takeOver);
+                if (!$result['ok']) {
+                    $error = $result['message'];
+                }
+
+                return $result['ok'];
+            }
+        } catch (Throwable $e) {
+            $error = $e->getMessage();
+
+            return false;
+        }
+
         if (!$employee->login($username, $password)) {
             $error = lang('Login.invalid_username_and_password');
 

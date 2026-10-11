@@ -80,6 +80,70 @@
         });
     });
 
+    // Automatic logout after a period without activity; the server enforces the same limit
+    const idle_logout_ms = <?= (int) config('Sync')->idleMinutes ?> * 60 * 1000;
+    let idle_timer;
+    const reset_idle_timer = function() {
+        clearTimeout(idle_timer);
+        idle_timer = setTimeout(function() {
+            window.location.href = "<?= site_url('home/logout') ?>";
+        }, idle_logout_ms);
+    };
+    ['click', 'keydown', 'mousemove', 'scroll', 'touchstart'].forEach(function(name) {
+        document.addEventListener(name, reset_idle_timer, {passive: true});
+    });
+    reset_idle_timer();
+
+    <?php if (($sync_status['mode'] ?? 'standalone') !== 'standalone') { ?>
+        const sync_action = function(url, confirmation) {
+            if (confirmation && !confirm(confirmation)) {
+                return;
+            }
+            $.ajax({
+                type: 'POST',
+                url: url,
+                dataType: 'json',
+                success: function(response) {
+                    $.notify({message: response.message}, {type: response.success ? 'success' : 'danger'});
+                    if (response.success) {
+                        setTimeout(function() { window.location.reload(); }, 1500);
+                    }
+                },
+                error: function() {
+                    $.notify({message: "<?= esc(lang('Sync.cloud_unreachable_short'), 'js') ?>"}, {type: 'danger'});
+                }
+            });
+        };
+
+        $(document).ready(function() {
+            $('#sync_push_button, .sync-push').click(function() {
+                sync_action("<?= site_url('sync/push') ?>", null);
+            });
+            $('#sync_pull_button, .sync-pull').click(function() {
+                sync_action("<?= site_url('sync/pull') ?>", "<?= esc(lang('Sync.pull_confirm'), 'js') ?>");
+            });
+        });
+
+        // Keeps the offline-mode lock alive while the page is open
+        setInterval(function() {
+            $.ajax({
+                type: 'POST',
+                url: "<?= site_url('sync/heartbeat') ?>",
+                dataType: 'json',
+                success: function(status) {
+                    if (status.lock === false) {
+                        $.notify({message: "<?= esc(lang('Sync.lock_lost'), 'js') ?>"}, {type: 'danger'});
+                    }
+                },
+                error: function(xhr) {
+                    if (xhr.status === 401 || xhr.status === 403) {
+                        window.location.reload();
+                    }
+                }
+            });
+        }, 60000);
+    <?php } ?>
+
     const submit = $.fn.submit;
 
     $.fn.submit = function() {

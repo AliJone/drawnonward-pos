@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Libraries\MY_Migration;
+use App\Libraries\Sync_lib;
 use App\Models\Employee;
 use CodeIgniter\HTTP\RedirectResponse;
 use CodeIgniter\HTTP\ResponseInterface;
@@ -38,6 +39,7 @@ class Home extends Secure_Controller
      */
     public function getLogout(): RedirectResponse
     {
+        (new Sync_lib())->endSession('logout');
         $this->employee->logout();
         return redirect()->to('login');
     }

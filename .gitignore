@@ -1,3 +1,6 @@
+# Local backup archives (tools/backup)
+backups/
+
 # Dependency directories
 node_modules
 vendor

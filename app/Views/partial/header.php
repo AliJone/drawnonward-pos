@@ -57,6 +57,7 @@ $request = Services::request();
                 <div class="navbar-left">
                     <div id="liveclock"><?= date($config['dateformat'] . ' ' . $config['timeformat']) ?></div>
                 </div>
+                <?= view('partial/sync_bar', ['sync_status' => $sync_status ?? ['mode' => 'standalone']]) ?>
 
                 <div class="navbar-right" style="margin: 0;">
                     <?= anchor("home/changePassword/$user_info->person_id", "$user_info->first_name $user_info->last_name", ['class' => 'modal-dlg', 'data-btn-submit' => lang('Common.submit'), 'title' => lang('Employees.change_password')]) ?>

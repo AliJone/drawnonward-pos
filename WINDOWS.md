@@ -237,29 +237,79 @@ Receipts print through the browser's normal print function, so any thermal print
 
 ---
 
+## Working from more than one place
+
+The POS can be used from the shop and from home with one shared online database, in an online mode (every install works directly on the online database) or an offline mode (the till works on its own database and syncs whole snapshots, one site at a time). Everyone is logged out automatically after 30 minutes without activity. Setup, the Oracle Cloud free virtual machine, the `.env` settings and the daily rules are in [ONLINE.md](ONLINE.md).
+
+---
+
 ## Backups
 
-Back up three things: the database, the uploaded images, and the `.env` file (it holds the encryption keys; without it, encrypted settings such as the SMTP password cannot be read).
+Three things must leave the PC regularly: the database, the uploaded images (`public\uploads`) and the `.env` file, which holds the encryption keys. Without `.env`, encrypted settings such as the SMTP password in a restored database cannot be read. The scripts in `tools\backup` do all of this.
 
-**Route A (Docker)**, in PowerShell inside the project folder:
+### What `backup.ps1` does
+
+1. Dumps the database, copies the uploads and `.env`, and writes a small manifest (date, PC name, app version).
+2. Packs them into `backups\drawnonward-backup-<date>-<time>.zip` and re-opens the archive to check it is complete.
+3. Copies the archive off the PC: to any cloud through rclone (`-Remote`), into a folder that OneDrive, Google Drive or Dropbox already syncs (`-SyncFolder`), or both.
+4. Deletes local archives older than 14 days and cloud archives older than 180 days (`-KeepDays`, `-CloudKeepDays`).
+5. Appends the result to `backups\backup.log`. Exit code 0 means success, which Task Scheduler shows as `0x0`.
+
+Credentials are never stored in the script: the Docker install asks the database container for its own credentials, the XAMPP install reads them from `.env`.
+
+### One-time cloud setup
+
+Pick one. Option 1 encrypts the archives before they leave the PC and is the recommended choice.
+
+**Option 1: rclone with encryption (Google Drive, OneDrive, Dropbox, S3, Backblaze B2 and others)**
+
+1. Install rclone: in PowerShell run `winget install Rclone.Rclone`, then open a new PowerShell window.
+2. Run `rclone config`, choose **n** (new remote), name it `gdrive`, pick your provider from the list (for example `drive` for Google Drive or `onedrive`) and follow the prompts; a browser window opens to sign in.
+3. Run `rclone config` again, choose **n**, name it `gdrive-crypt`, type `crypt`, and when asked for the remote enter `gdrive:drawnonward-backups`. Set a password when asked. **Write this password down and keep it outside the PC**: without it the backups cannot be opened, not even by drawnonward.
+4. Test with `rclone lsd gdrive-crypt:` (no error means it works).
+
+Use `-Remote gdrive-crypt:drawnonward-backups` in the commands below.
+
+**Option 2: synced folder (no encryption)**
+
+Install the OneDrive, Google Drive or Dropbox desktop app, sign in, and create a folder named `drawnonward-backups` inside the synced folder. Use `-SyncFolder "$env:USERPROFILE\OneDrive\drawnonward-backups"` (adjust the path) in the commands below. Anyone with access to that cloud account can read the data, so protect the account with a strong password and two-factor authentication.
+
+### Run a backup and schedule it
+
+If PowerShell refuses to run scripts, run this once: `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`.
 
 ```powershell
-docker compose exec mysql sh -c "mysqldump -uadmin -ppointofsale drawnonward > /tmp/drawnonward.sql"
-docker compose cp mysql:/tmp/drawnonward.sql .\drawnonward-backup.sql
-docker compose cp drawnonward:/app/public/uploads .\uploads-backup
-Copy-Item .env .\env-backup.txt
+cd C:\drawnonward-pos\tools\backup
+
+# run one backup now
+.\backup.ps1 -Remote gdrive-crypt:drawnonward-backups
+
+# run it every day at 21:00
+.\schedule-backup.ps1 -Time 21:00 -Remote gdrive-crypt:drawnonward-backups
 ```
 
-Restore the database:
+For the synced-folder option replace `-Remote ...` with `-SyncFolder "$env:USERPROFILE\OneDrive\drawnonward-backups"`. XAMPP installs add `-Mode Xampp` to both commands.
+
+The scheduled task runs as the logged-on user, because Docker Desktop lives in that session; if the PC was off at 21:00, the backup runs at the next logon. Check it in Task Scheduler (task "drawnonward POS backup", Last Run Result `0x0`) or in `backups\backup.log`. Run `.\schedule-backup.ps1 -Unregister` to remove the task.
+
+### Restore
 
 ```powershell
-docker compose cp .\drawnonward-backup.sql mysql:/tmp/restore.sql
-docker compose exec mysql sh -c "mysql -uadmin -ppointofsale drawnonward < /tmp/restore.sql"
+cd C:\drawnonward-pos\tools\backup
+.\restore.ps1 -Backup C:\Users\Shop\Downloads\drawnonward-backup-20261003-210000.zip
 ```
 
-**Route B (XAMPP):** in phpMyAdmin select the `drawnonward` database → **Export** → **Go** to download the SQL file, and copy the folders `C:\xampp\htdocs\drawnonward\public\uploads` and the file `.env` to your backup location. Restore with phpMyAdmin → **Import**.
+This replaces the current database and uploads after a confirmation. Add `-IncludeEnv` to restore the `.env` file as well, and `-Force` to skip the confirmation. To fetch an archive from the cloud: `rclone copy gdrive-crypt:drawnonward-backups/drawnonward-backup-20261003-210000.zip .` or copy it out of the synced folder.
 
-Keep backups on a different drive or in cloud storage, not only on the till PC.
+### Disaster recovery on a new PC
+
+1. Install Docker Desktop (A1) and get the code (Before you start). Do **not** create `.env` from the example.
+2. Fetch the latest backup zip from the cloud and extract the `.env` file from it into the project folder (it is a hidden file; in Explorer turn on **View → Show → Hidden items**).
+3. Run `docker compose up --build -d` and wait until `docker compose ps` shows `mysql` as healthy.
+4. Run `.\restore.ps1 -Backup <path to the zip> -Force` from `tools\backup`.
+5. Open http://localhost, log in with the old user names and passwords, and check a recent sale, the company logo and the receipt settings.
+
+Keep the rclone password and the cloud account details in a password manager, never only on the till PC.
 
 ---
 

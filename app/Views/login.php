@@ -73,6 +73,10 @@ $request = Services::request();
                     </strong>
                 </div>
 
+                <?php if (!empty($idleLogout)): ?>
+                    <div class="alert alert-info mt-3"><?= lang('Sync.idle_logout', [config('Sync')->idleMinutes]) ?></div>
+                <?php endif; ?>
+
                 <?php if ($hasErrors): ?>
                     <?php foreach ($validation->getErrors() as $error): ?>
                         <div class="alert alert-danger mt-3">
@@ -138,6 +142,15 @@ $request = Services::request();
                         <div class="g-recaptcha mb-3" style="text-align: center;" data-sitekey="<?= esc($config['gcaptcha_site_key']) ?>"></div>
                     <?php endif; ?>
                 </div>
+
+                <?php if (!empty($takeOverOffer)): ?>
+                    <div class="d-grid mb-2">
+                        <button class="btn btn-warning" name="take_over" value="1" type="submit"
+                                onclick="return confirm('<?= esc(lang('Sync.take_over_confirm'), 'js') ?>');">
+                            <?= lang('Sync.take_over') ?>
+                        </button>
+                    </div>
+                <?php endif; ?>
 
                 <div class="d-grid">
                     <button id="submit-button" class="btn btn-lg btn-primary" name="login-button" type="submit">

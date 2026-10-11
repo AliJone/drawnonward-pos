@@ -6,6 +6,7 @@ use App\Libraries\Barcode_lib;
 use App\Libraries\Mailchimp_lib;
 use App\Libraries\Receiving_lib;
 use App\Libraries\Sale_lib;
+use App\Libraries\Sync_lib;
 use App\Libraries\Tax_lib;
 use App\Models\Appconfig;
 use App\Models\Attribute;
@@ -253,6 +254,11 @@ class Config extends Secure_Controller
         $data['show_office_group'] = $this->module->get_show_office_group();
         $data['currency_code'] = $this->config['currency_code'] ?? '';
         $data['dbVersion'] = mysqli_get_server_info($this->db->getConnection());
+
+        $sync = new Sync_lib();
+        $data['sync_status'] = $sync->status(true);
+        $data['sync_log'] = $sync->recentLog();
+        $data['is_admin'] = $this->employee->isAdmin((int) $this->employee->get_logged_in_employee_info()->person_id);
 
         // Load all the license statements, they are already XSS cleaned in the private function
         $data['licenses'] = $this->_licenses();
