@@ -326,6 +326,7 @@ class Sync_lib
      */
     public function push(string $trigger): array
     {
+        set_time_limit(1800);    // a whole snapshot over the internet outlives PHP's default 30 s
         $started = self::now();
         $cloud = $this->cloud();
         $this->ensureCloudSchema();
@@ -371,6 +372,7 @@ class Sync_lib
      */
     public function pull(string $trigger): array
     {
+        set_time_limit(1800);
         $started = self::now();
         $cloud = $this->cloud();
         $this->assertSameSchemaVersion();
@@ -602,6 +604,7 @@ class Sync_lib
             `content` LONGBLOB NOT NULL,
             PRIMARY KEY (`path`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+        $db->resetDataCache();    // tableExists() reads a cached table list
     }
 
     /**
@@ -637,6 +640,7 @@ class Sync_lib
             }
         } finally {
             $cloud->query('SET FOREIGN_KEY_CHECKS = 1');
+            $cloud->resetDataCache();
         }
     }
 

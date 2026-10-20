@@ -15,9 +15,36 @@ Support: info@drawnonward.org · +923182232414
 
 ## 1. Create the online database
 
-The online database is a MySQL or MariaDB server reachable from every site. Two ways to get one:
+The online database is a MariaDB or MySQL server reachable from every site. It only holds the lock, the login credentials and the latest snapshot; day-to-day work happens on each PC's local database. Two ways to get one:
 
-### Option A: a free Oracle Cloud virtual machine (recommended, no monthly cost)
+### Option A: a managed MariaDB service (simplest)
+
+A hosted database gives you a host name, a port, a user and a password, and nothing to maintain. Two free options:
+
+- **MariaDB Cloud (SkySQL)**, https://skysql.com: the Free Developer Tier is a perpetually free serverless MariaDB (0.5 vCPU and 2 GB baseline, scales to zero when idle, so the first query after a quiet period takes a moment). Same engine as the POS's local database, which makes it the recommended choice.
+- **Aiven for MySQL**, https://aiven.io: free plan with 1 CPU, 1 GB RAM and 1 GB disk. This is MySQL 8, not MariaDB; the first sync copies the MariaDB table definitions to the online database, and that step has not been verified against MySQL 8.
+
+Steps for MariaDB Cloud:
+
+1. Sign up, choose **Serverless**, the Free Developer Tier, the MariaDB engine and the region closest to the shop, and launch the service.
+2. **Secure access / IP allowlist**: the service refuses every connection until an address is allowed. Shop and home internet connections usually have changing addresses, so allow `0.0.0.0/0`; the password and TLS protect the database.
+3. **Connect to service**: note the host name, port (not 3306), user name and password. Change the default password right away with the `SET PASSWORD` statement the page shows.
+4. Create the database once, from the portal's SQL editor or any MySQL client: `CREATE DATABASE drawnonward;`
+
+Every install then needs these `.env` lines (see section 2), with the values from the portal:
+
+```ini
+database.cloud.hostname='<host name from the portal>'
+database.cloud.port=<port from the portal>
+database.cloud.database='drawnonward'
+database.cloud.username='<user from the portal>'
+database.cloud.password='<password>'
+database.cloud.encrypt=true
+```
+
+`encrypt=true` encrypts the connection and verifies the server's certificate. MariaDB Cloud's certificate is issued by a public authority, so Docker installs need nothing more. Two cases need `database.cloud.sslCa`: a provider with its own certificate authority (Aiven) and XAMPP installs, which have no system certificate store. For Aiven, save the CA file downloaded from its console as `cloud-ca.pem` in the project folder, set `database.cloud.sslCa='/app/cloud-ca.pem'`, and for Docker installs add the line `- ./cloud-ca.pem:/app/cloud-ca.pem:ro` under `volumes:` of the `drawnonward` service in `docker-compose.yml`. For XAMPP, set `database.cloud.sslCa='C:/xampp/apache/bin/curl-ca-bundle.crt'` (public authorities) or the provider's CA file. A wrong CA file makes every login fail with *The online database cannot be reached*.
+
+### Option B: a free Oracle Cloud virtual machine (no monthly cost, more work)
 
 Oracle's **Always Free** tier includes an Arm virtual machine (VM.Standard.A1.Flex, up to 4 cores and 24 GB) that can run MariaDB in Docker indefinitely at no charge. Note that Oracle's *MySQL HeatWave Database Service* is **not** part of Always Free; it only comes with 30-day trial credits and is billed afterwards, so use the virtual machine route.
 
@@ -50,10 +77,6 @@ Oracle's **Always Free** tier includes an Arm virtual machine (VM.Standard.A1.Fl
 
 Back up the VM's database too: the POS backup script (`tools\backup`) runs on each PC and includes whatever that PC holds; for the online database itself, schedule `docker exec drawnonward-db sh -c 'mysqldump -uadmin -p"$MYSQL_PASSWORD" drawnonward' > backup.sql` on the VM or let an offline site's backups cover it.
 
-### Option B: a managed MySQL service
-
-DigitalOcean Managed MySQL, Aiven for MySQL, PlanetScale, Amazon RDS and similar services work as well. Create a database named `drawnonward` and a user, restrict access to the public IP addresses of the shop and home (the "trusted sources" or allowlist setting), and use the TLS connection details they give you with `database.cloud.encrypt=true`.
-
 ---
 
 ## 2. Configure each install
@@ -78,9 +101,9 @@ database.cloud.DBPrefix='drawnonward_'
 database.cloud.encrypt=false
 ```
 
-`database.default.*` stays as it is (the local database). Give every offline-mode PC its own `sync.siteName`.
+`database.default.*` stays as it is (the local database). With a managed service (Option A) use its host name, port, user and `database.cloud.encrypt=true` instead of the Tailscale address. Give every offline-mode PC its own `sync.siteName`.
 
-**Home PC, online mode** (no local data, everything on the online database):
+**Home PC, online mode** (no local data, everything on the online database). Online mode talks to the online database over the plain `database.default` connection, so it suits the Tailscale VM (Option B); with a managed service (Option A) run every PC in offline mode instead:
 
 ```ini
 sync.mode='online'
@@ -126,7 +149,7 @@ When another site takes the data over, the first PC can no longer sync (its hear
 
 | Message | Cause and fix |
 | --- | --- |
-| *The online database cannot be reached and this PC does not hold the data* | Internet or Tailscale is down, or `database.cloud.*` is wrong. Check **Configuration → Sync → Test connection** from a PC that can log in, or `ping 100.101.102.103`. |
+| *The online database cannot be reached and this PC does not hold the data* | Internet is down, or `database.cloud.*` is wrong: host name, port, password, `encrypt` (managed services need `true`), a wrong `sslCa` file, or the shop's address is not in the provider's IP allowlist. Check **Configuration → Sync → Test connection** from a PC that can log in. |
 | *has been working offline since ...* | Normal: log out on that PC first. |
 | *holds the data but has shown no activity since ...* | That PC stopped syncing (switched off, crashed). Log in as an administrator and use **Take over the data**. |
 | *The online database is at software version X and this install at Y* | Update both installs to the same release before syncing (`git pull` and `docker compose up --build -d`). |

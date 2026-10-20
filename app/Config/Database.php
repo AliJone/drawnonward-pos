@@ -170,5 +170,11 @@ class Database extends Config
             $config['password'] = !getenv('MYSQL_PASSWORD') ? $config['password'] : getenv('MYSQL_PASSWORD');
             $config['database'] = !getenv('MYSQL_DB_NAME') ? $config['database'] : getenv('MYSQL_DB_NAME');
         }
+
+        // The MySQLi driver only uses TLS when encrypt is an array; .env gives a bool plus an optional CA file
+        if ($this->cloud['encrypt'] === true) {
+            $ca = (string) env('database.cloud.sslCa', '');
+            $this->cloud['encrypt'] = ['ssl_verify' => true] + ($ca !== '' ? ['ssl_ca' => $ca] : ['ssl_capath' => '/etc/ssl/certs']);
+        }
     }
 }
