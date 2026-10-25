@@ -316,6 +316,25 @@ function quantity_decimals(): int
 }
 
 /**
+ * Units an item can be measured in: the config list (one per line) or $list, trimmed, unique, 16 characters at most.
+ *
+ * @return string[]
+ */
+function item_units(?string $list = null): array
+{
+    $list ??= config(Drawnonward::class)->settings['units'] ?? '';
+    $units = [];
+    foreach (preg_split('/\R/', $list) as $unit) {
+        $unit = mb_substr(trim($unit), 0, 16);
+        if ($unit !== '' && !in_array($unit, $units, true)) {
+            $units[] = $unit;
+        }
+    }
+
+    return $units;
+}
+
+/**
  * @return int
  */
 function totals_decimals(): int
@@ -419,9 +438,11 @@ function to_tax_decimals($number): string
  * @param string|null $number
  * @return string
  */
-function to_quantity_decimals(?string $number): string
+function to_quantity_decimals(?string $number, ?string $unit = null): string
 {
-    return to_decimals($number, 'quantity_decimals');
+    $text = to_decimals($number, 'quantity_decimals');
+
+    return ($text === '' || $unit === null || $unit === '') ? $text : $text . ' ' . esc($unit);
 }
 
 /**
@@ -439,8 +460,10 @@ function to_decimals(?string $number, ?string $decimals = null, int $type = Numb
 
     $config = config(Drawnonward::class)->settings;
     $fmt = new NumberFormatter($config['number_locale'], $type);
-    $fmt->setAttribute(NumberFormatter::MIN_FRACTION_DIGITS, empty($decimals) ? DEFAULT_PRECISION : $config[$decimals]);
-    $fmt->setAttribute(NumberFormatter::MAX_FRACTION_DIGITS, empty($decimals) ? DEFAULT_PRECISION : $config[$decimals]);
+    $digits = empty($decimals) ? DEFAULT_PRECISION : $config[$decimals];
+    // quantities drop trailing zeros: "2" and "1.5" rather than "2.000"
+    $fmt->setAttribute(NumberFormatter::MIN_FRACTION_DIGITS, $decimals === 'quantity_decimals' ? 0 : $digits);
+    $fmt->setAttribute(NumberFormatter::MAX_FRACTION_DIGITS, $digits);
 
     if (empty($config['thousands_separator'])) {
         $fmt->setTextAttribute(NumberFormatter::GROUPING_SEPARATOR_SYMBOL, '');

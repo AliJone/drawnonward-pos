@@ -137,7 +137,7 @@ if (isset($success)) {
                         <td><?= esc($item['item_number']) ?></td>
                         <td style="text-align: center;">
                             <?= esc($item['name'] . ' ' . implode(' ', [$item['attribute_values'], $item['attribute_dtvalues']])) ?><br>
-                            <?= '[' . to_quantity_decimals($item['in_stock']) . ' in ' . esc($item['stock_name']) . ']' ?>
+                            <?= '[' . to_quantity_decimals($item['in_stock'], $item['unit'] ?? null) . ' in ' . esc($item['stock_name']) . ']' ?>
                             <?= form_hidden('location', (string)$item['item_location']) ?>
                         </td>
 
@@ -158,7 +158,10 @@ if (isset($success)) {
                         <?php } ?>
 
                         <td>
-                            <?= form_input(['name' => 'quantity', 'class' => 'form-control input-sm', 'value' => to_quantity_decimals($item['quantity']), 'onClick' => 'this.select();']) ?>
+                            <?php
+                            $quantity_input = form_input(['name' => 'quantity', 'class' => 'form-control input-sm', 'value' => to_quantity_decimals($item['quantity']), 'onClick' => 'this.select();']);
+                            echo empty($item['unit']) ? $quantity_input : '<div class="input-group input-group-sm">' . $quantity_input . '<span class="input-group-addon">' . esc($item['unit']) . '</span></div>';
+                            ?>
                         </td>
                         <td>
                             <?= form_dropdown(

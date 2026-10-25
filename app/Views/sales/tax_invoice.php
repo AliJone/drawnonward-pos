@@ -144,7 +144,7 @@ if (isset($error_message)) {
                         <td style="text-align: center;"><?= esc($item['hsn_code']) ?></td>
                     <?php endif; ?>
                     <td class="item-name"><?= esc($item['name']) ?></td>
-                    <td style="text-align: center;"><?= to_quantity_decimals($item['quantity']) ?></td>
+                    <td style="text-align: center;"><?= to_quantity_decimals($item['quantity'], $item['unit'] ?? null) ?></td>
                     <td><?= to_currency($item['price']) ?></td>
                     <td style="text-align: center;"><?= ($item['discount_type'] == FIXED) ? to_currency($item['discount']) : to_decimals($item['discount']) . '%' ?></td>
                     <?php if ($discount > 0): ?>

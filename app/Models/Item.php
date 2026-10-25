@@ -64,6 +64,7 @@ class Item extends Model
         'pic_filename',
         'qty_per_pack',
         'pack_name',
+        'unit',
         'low_sell_item_id',
         'hsn_code'
     ];
@@ -491,6 +492,7 @@ class Item extends Model
         $builder->select('MAX(items.allow_alt_description) AS allow_alt_description');
         $builder->select('MAX(items.is_serialized) AS is_serialized');
         $builder->select('MAX(items.pack_name) AS pack_name');
+        $builder->select('MAX(items.unit) AS unit');
         $builder->select('MAX(items.tax_category_id) AS tax_category_id');
         $builder->select('MAX(items.deleted) AS deleted');
 

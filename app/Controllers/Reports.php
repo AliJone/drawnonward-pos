@@ -2035,8 +2035,8 @@ class Reports extends Secure_Controller
             $tabular_data[] = [
                 'item_name'     => $row['name'],
                 'item_number'   => $row['item_number'],
-                'quantity'      => to_quantity_decimals($row['quantity']),
-                'reorder_level' => to_quantity_decimals($row['reorder_level']),
+                'quantity'      => to_quantity_decimals($row['quantity'], $row['unit']),
+                'reorder_level' => to_quantity_decimals($row['reorder_level'], $row['unit']),
                 'location_name' => $row['location_name']
             ];
         }
@@ -2091,9 +2091,9 @@ class Reports extends Secure_Controller
                 'item_name'         => $row['name'],
                 'item_number'       => $row['item_number'],
                 'category'          => $row['category'],
-                'quantity'          => to_quantity_decimals($row['quantity']),
+                'quantity'          => to_quantity_decimals($row['quantity'], $row['unit']),
                 'low_sell_quantity' => to_quantity_decimals($row['low_sell_quantity']),
-                'reorder_level'     => to_quantity_decimals($row['reorder_level']),
+                'reorder_level'     => to_quantity_decimals($row['reorder_level'], $row['unit']),
                 'location_name'     => $row['location_name'],
                 'cost_price'        => to_currency($row['cost_price']),
                 'unit_price'        => to_currency($row['unit_price']),

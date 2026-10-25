@@ -181,7 +181,7 @@ helper('url');
                                 <td style="text-align: center;">
                                     <?= esc($item['name']) . ' ' . esc(implode(' ', [$item['attribute_values'], $item['attribute_dtvalues']])) ?>
                                     <br>
-                                    <?php if ($item['stock_type'] == '0'): echo '[' . to_quantity_decimals($item['in_stock']) . ' in ' . esc($item['stock_name']) . ']';
+                                    <?php if ($item['stock_type'] == '0'): echo '[' . to_quantity_decimals($item['in_stock'], $item['unit'] ?? null) . ' in ' . esc($item['stock_name']) . ']';
                                     endif; ?>
                                 </td>
                             <?php } ?>
@@ -200,10 +200,11 @@ helper('url');
                             <td>
                                 <?php
                                 if ($item['is_serialized']) {
-                                    echo to_quantity_decimals($item['quantity']);
+                                    echo to_quantity_decimals($item['quantity'], $item['unit'] ?? null);
                                     echo form_hidden('quantity', $item['quantity']);
                                 } else {
-                                    echo form_input(['name' => 'quantity', 'class' => 'form-control input-sm', 'value' => to_quantity_decimals($item['quantity']), 'tabindex' => ++$tabindex, 'onClick' => 'this.select();']);
+                                    $quantity_input = form_input(['name' => 'quantity', 'class' => 'form-control input-sm', 'value' => to_quantity_decimals($item['quantity']), 'tabindex' => ++$tabindex, 'onClick' => 'this.select();']);
+                                    echo empty($item['unit']) ? $quantity_input : '<div class="input-group input-group-sm">' . $quantity_input . '<span class="input-group-addon">' . esc($item['unit']) . '</span></div>';
                                 }
                                 ?>
                             </td>

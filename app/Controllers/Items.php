@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Libraries\Barcode_lib;
 use App\Libraries\Item_lib;
+use App\Models\Appconfig;
 use App\Models\Attribute;
 use App\Models\Inventory;
 use App\Models\Item;
@@ -405,6 +406,7 @@ class Items extends Secure_Controller
             $item_info->tax_category_id = null;
             $item_info->qty_per_pack = 1;
             $item_info->pack_name = lang('Items.default_pack_name');
+            $item_info->unit = item_units()[0] ?? '';    // the first listed unit is the default
 
             if ($use_destination_based_tax) {
                 $item_info->tax_category_id = $this->config['default_tax_category'];
@@ -774,6 +776,7 @@ class Items extends Secure_Controller
         $unitPrice = parse_decimals($this->request->getPost('unit_price'));
         $reorderLevel = parse_quantity($this->request->getPost('reorder_level'));
         $qtyPerPack = parse_quantity($this->request->getPost('qty_per_pack') ?? '');
+        $unit = mb_substr(trim((string) $this->request->getPost('unit')), 0, 16);
 
         // Save item data
         $itemData = [
@@ -792,6 +795,7 @@ class Items extends Secure_Controller
             'is_serialized'         => $this->request->getPost('is_serialized') != null,
             'qty_per_pack'          => $this->request->getPost('qty_per_pack') == null ? 1 : parse_quantity($qtyPerPack),
             'pack_name'             => $this->request->getPost('pack_name') == null ? $defaultPackName : $this->request->getPost('pack_name'),
+            'unit'                  => $unit,
             'low_sell_item_id'      => $this->request->getPost('low_sell_item_id') === null ? $itemId : intval($this->request->getPost('low_sell_item_id')),
             'deleted'               => $this->request->getPost('is_deleted') != null,
             'hsn_code'              => $this->request->getPost('hsn_code') === null ? '' : $this->request->getPost('hsn_code')
@@ -889,6 +893,9 @@ class Items extends Secure_Controller
         // Check all success conditions before committing
         if ($success && $uploadSuccess) {
             $db->transCommit();
+            if ($unit !== '' && !in_array($unit, item_units(), true)) {
+                model(Appconfig::class)->save(['units' => implode("\n", array_merge(item_units(), [$unit]))]);    // a unit typed on the form joins the list
+            }
             $message = lang('Items.successful_' . ($newItem ? 'adding' : 'updating')) . ' ' . $itemData['name'];
 
             return $this->response->setJSON(['success' => true, 'message' => $message, 'id' => $itemId]);

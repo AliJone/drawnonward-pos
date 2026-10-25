@@ -282,6 +282,26 @@
             </div>
         <?php endif; ?>
 
+        <div class="form-group form-group-sm">
+            <?= form_label(lang('Items.unit'), 'unit', ['class' => 'control-label col-xs-3']) ?>
+            <div class="col-xs-4">
+                <?= form_input([
+                    'name'         => 'unit',
+                    'id'           => 'unit',
+                    'class'        => 'form-control input-sm',
+                    'list'         => 'unit_options',
+                    'maxlength'    => 16,
+                    'autocomplete' => 'off',
+                    'value'        => $item_info->unit
+                ]) ?>
+                <datalist id="unit_options">
+                    <?php foreach (item_units() as $unit) { ?>
+                        <option value="<?= esc($unit) ?>">
+                    <?php } ?>
+                </datalist>
+            </div>
+        </div>
+
         <?php foreach ($stock_locations as $key => $location_detail) { ?>
             <div class="form-group form-group-sm">
                 <?= form_label(lang('Items.quantity') . ' ' . $location_detail['location_name'], "quantity_$key", ['class' => 'required control-label col-xs-3']) ?>
@@ -511,7 +531,7 @@
                                 // Set action of item_form to url without item id, so a new one can be created
                                 $('#item_form').attr('action', "<?= 'items/save/' ?>");
                                 // Use a whitelist of fields to minimize unintended side effects
-                                $(':text, :password, :file, #description, #item_form').not('.quantity, #reorder_level, #tax_name_1, #receiving_quantity, ' +
+                                $(':text, :password, :file, #description, #item_form').not('.quantity, #reorder_level, #tax_name_1, #receiving_quantity, #unit, ' +
                                     '#tax_percent_name_1, #category, #reference_number, #name, #cost_price, #unit_price, #taxed_cost_price, #taxed_unit_price, #definition_name, [name^="attribute_links"]').val('');
                                 // De-select any checkboxes, radios and drop-down menus
                                 $(':input', '#item_form').removeAttr('checked').removeAttr('selected');

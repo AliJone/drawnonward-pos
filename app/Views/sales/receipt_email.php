@@ -61,7 +61,7 @@
                 <tr>
                     <td><?= esc(ucfirst($item['name'] . ' ' . $item['attribute_values'])) ?></td>
                     <td><?= to_currency($item['price']) ?></td>
-                    <td><?= to_quantity_decimals($item['quantity']) ?></td>
+                    <td><?= to_quantity_decimals($item['quantity'], $item['unit'] ?? null) ?></td>
                     <td style="text-align: right;"><?= to_currency($item[($config['receipt_show_total_discount'] ? 'total' : 'discounted_total')]) ?></td>
                 </tr>
                 <tr>

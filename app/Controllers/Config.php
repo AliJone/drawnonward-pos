@@ -423,6 +423,7 @@ class Config extends Secure_Controller
             'suggestions_third_column'          => $this->validateSuggestionsColumn($this->request->getPost('suggestions_third_column'), 'other'),
             'derive_sale_quantity'              => $this->request->getPost('derive_sale_quantity') != null,
             'multi_pack_enabled'                => $this->request->getPost('multi_pack_enabled') != null,
+            'units'                             => implode("\n", item_units((string) $this->request->getPost('units'))),
             'include_hsn'                       => $this->request->getPost('include_hsn') != null,
             'category_dropdown'                 => $this->request->getPost('category_dropdown') != null
         ];

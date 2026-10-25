@@ -44,6 +44,7 @@ class Inventory_summary extends Report
             $item->get_item_name('name') . ',
             items.item_number,
             items.category,
+            items.unit,
             item_quantities.quantity,
             (item_quantities.quantity * items.qty_per_pack) as low_sell_quantity,
             items.reorder_level,

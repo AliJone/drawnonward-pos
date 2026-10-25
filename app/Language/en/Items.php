@@ -115,6 +115,7 @@ return [
     'tax_percents'                       => 'Tax Percent(s)',
     'temp'                               => 'Temporary',
     'type'                               => 'Item Type',
+    'unit'                               => 'Unit',
     'unit_price'                         => 'Retail Price',
     'unit_price_number'                  => 'Unit price must be a number.',
     'unit_price_required'                => 'Retail Price is a required field.',

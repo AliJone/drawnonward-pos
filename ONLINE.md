@@ -152,5 +152,5 @@ When another site takes the data over, the first PC can no longer sync (its hear
 | *The online database cannot be reached and this PC does not hold the data* | Internet is down, or `database.cloud.*` is wrong: host name, port, password, `encrypt` (managed services need `true`), a wrong `sslCa` file, or the shop's address is not in the provider's IP allowlist. Check **Configuration → Sync → Test connection** from a PC that can log in. |
 | *has been working offline since ...* | Normal: log out on that PC first. |
 | *holds the data but has shown no activity since ...* | That PC stopped syncing (switched off, crashed). Log in as an administrator and use **Take over the data**. |
-| *The online database is at software version X and this install at Y* | Update both installs to the same release before syncing (`git pull` and `docker compose up --build -d`). |
+| *The online database is at software version X and this install at Y* | This PC runs an older release than the PC that last synced. Update it (`git pull` and `docker compose up --build -d`) and log in again. A PC on a newer release upgrades the online database on its next push. |
 | Online mode pages are slow | Expected over the internet; use offline mode on the till and online mode only for occasional work, or run the POS itself on the VM (same Docker setup, open it in a browser over Tailscale). |

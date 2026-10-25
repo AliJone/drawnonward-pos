@@ -408,6 +408,24 @@
             </div>
 
             <div class="form-group form-group-sm">
+                <?= form_label(lang('Config.units'), 'units', ['class' => 'control-label col-xs-2']) ?>
+                <div class="col-xs-2">
+                    <?= form_textarea([
+                        'name'  => 'units',
+                        'id'    => 'units',
+                        'class' => 'form-control input-sm',
+                        'rows'  => 5,
+                        'value' => $config['units'] ?? ''
+                    ]) ?>
+                </div>
+                <div class="col-xs-1">
+                    <label class="control-label">
+                        <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="right" title="<?= lang('Config.units_tooltip') ?>"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-group form-group-sm">
                 <?= form_label(lang('Config.include_hsn'), 'include_hsn', ['class' => 'control-label col-xs-2']) ?>
                 <div class="col-xs-1">
                     <?= form_checkbox([

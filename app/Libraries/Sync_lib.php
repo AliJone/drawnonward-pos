@@ -330,7 +330,7 @@ class Sync_lib
         $started = self::now();
         $cloud = $this->cloud();
         $this->ensureCloudSchema();
-        $this->assertSameSchemaVersion();
+        $this->assertInstallUpToDate();
 
         $local = $this->stateRow($this->local);
         $cloud->transBegin();
@@ -375,7 +375,7 @@ class Sync_lib
         set_time_limit(1800);
         $started = self::now();
         $cloud = $this->cloud();
-        $this->assertSameSchemaVersion();
+        $this->assertInstallUpToDate();
 
         try {
             $state = $this->stateRow($cloud);
@@ -608,18 +608,25 @@ class Sync_lib
     }
 
     /**
-     * An empty shared database gets the local schema (CREATE TABLE statements) and the migration history,
-     * so the first push from an existing install sets it up.
+     * An empty shared database gets the local schema (CREATE TABLE statements) and the migration history, so the
+     * first push from an existing install sets it up. It only stores snapshots, so once this install has migrated
+     * further, its tables are dropped and recreated from the local definitions before the push refills them.
      */
     private function ensureCloudSchema(): void
     {
         $cloud = $this->cloud();
-        if ($cloud->tableExists('employees')) {
+        $populated = $cloud->tableExists('employees');
+        if ($populated && $this->schemaVersion($cloud) >= $this->schemaVersion($this->local)) {
             return;
         }
 
         $cloud->query('SET FOREIGN_KEY_CHECKS = 0');
         try {
+            if ($populated) {    // outdated: rebuilt from the local definitions below
+                foreach ($this->syncTables($cloud) as $table) {
+                    $cloud->query('DROP TABLE IF EXISTS `' . $cloud->prefixTable($table) . '`');
+                }
+            }
             foreach ($this->local->listTables() as $fullName) {
                 if (strpos($fullName, $this->local->DBPrefix) !== 0) {
                     continue;
@@ -654,11 +661,15 @@ class Sync_lib
         return (int) ($row->version ?? 0);
     }
 
-    private function assertSameSchemaVersion(): void
+    /**
+     * An install older than the shared database must update first. The other way round is fine: an older snapshot
+     * pulls into a newer install (new columns take their defaults) and the next push rebuilds the shared schema.
+     */
+    private function assertInstallUpToDate(): void
     {
         $localVersion = $this->schemaVersion($this->local);
         $cloudVersion = $this->schemaVersion($this->cloud());
-        if ($localVersion !== $cloudVersion) {
+        if ($cloudVersion > $localVersion) {
             throw new RuntimeException(lang('Sync.schema_mismatch', [$cloudVersion, $localVersion]));
         }
     }
@@ -697,7 +708,11 @@ class Sync_lib
                 if (!$dst->tableExists($table)) {
                     throw new RuntimeException(lang('Sync.schema_mismatch', ['?', '?']) . " ($table)");
                 }
-                $dst->table($table)->emptyTable();
+                // settings a newer migration added on this install survive pulling an older snapshot
+                $merge = $table === 'app_config' && $dst === $this->local;
+                if (!$merge) {
+                    $dst->table($table)->emptyTable();
+                }
 
                 $keys = [];
                 foreach ($src->getFieldData($table) as $field) {
@@ -713,7 +728,7 @@ class Sync_lib
                     }
                     $rows = $builder->get(self::CHUNK, $offset)->getResultArray();
                     if ($rows !== []) {
-                        $dst->table($table)->insertBatch($rows);
+                        $merge ? $dst->table($table)->upsertBatch($rows) : $dst->table($table)->insertBatch($rows);
                     }
                     $offset += self::CHUNK;
                 } while (count($rows) === self::CHUNK);

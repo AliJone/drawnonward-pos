@@ -494,7 +494,7 @@ function getItemDataRow(object $item, array $definitionNames, array $taxPercents
         'company_name'  => $item->company_name,    // TODO: This isn't in the items table. Should this be here?
         'cost_price'    => to_currency($item->cost_price),
         'unit_price'    => to_currency($item->unit_price),
-        'quantity'      => to_quantity_decimals($item->quantity),
+        'quantity'      => to_quantity_decimals($item->quantity, $item->unit),
         'tax_percents'  => !$taxPercents ? '-' : $taxPercents,
         'item_pic'      => $image
     ];

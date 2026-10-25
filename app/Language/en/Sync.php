@@ -27,7 +27,7 @@ return [
     'pull_done'               => 'Pulled the latest data ({0} tables, {1} files)',
     'pull_latest'             => 'Pull latest',
     'push_done'               => 'Synced to the online database ({0} tables, {1} files)',
-    'schema_mismatch'         => 'The online database is at software version {0} and this install at {1}. Update both to the same version before syncing.',
+    'schema_mismatch'         => 'The online database is at software version {0} and this install at {1}. Update this install before syncing.',
     'site'                    => 'This site',
     'snapshot_version'        => 'Snapshot version',
     'status'                  => 'Status',

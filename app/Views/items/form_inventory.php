@@ -73,7 +73,7 @@
                     'id'       => 'quantity',
                     'class'    => 'form-control input-sm',
                     'disabled' => '',
-                    'value'    => to_quantity_decimals(current($item_quantities))
+                    'value'    => to_quantity_decimals(current($item_quantities), $item_info->unit)
                 ]) ?>
             </div>
         </div>

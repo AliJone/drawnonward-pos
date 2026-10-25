@@ -1158,6 +1158,7 @@ class Sale_lib
                     'allow_alt_description' => $item_info->allow_alt_description,
                     'is_serialized'         => $item_info->is_serialized,
                     'quantity'              => $quantity,
+                    'unit'                  => $item_info->unit,
                     'discount'              => $applied_discount,
                     'discount_type'         => $discount_type,
                     'in_stock'              => $this->item_quantity->get_item_quantity($item_id, $item_location)->quantity,

@@ -35,6 +35,7 @@ class Inventory_low extends Report
         $item = model(Item::class);
         $query = $this->db->query("SELECT " . $item->get_item_name('name') . ",
             items.item_number,
+            items.unit,
             item_quantities.quantity,
             items.reorder_level,
             stock_locations.location_name

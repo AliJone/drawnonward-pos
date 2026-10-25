@@ -335,6 +335,7 @@ class Receiving_lib
                 'allow_alt_description'      => $itemInfo->allow_alt_description,
                 'is_serialized'              => $itemInfo->is_serialized,
                 'quantity'                   => $quantity,
+                'unit'                       => $itemInfo->unit,
                 'discount'                   => $discount,
                 'discount_type'              => $discountType,
                 'in_stock'                   => $this->item_quantity->get_item_quantity((int) $itemId, $itemLocation)->quantity,

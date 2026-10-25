@@ -332,6 +332,8 @@ return [
     'timezone'                                  => 'Timezone',
     'timezone_error'                            => 'drawnonward Timezone is Different from your Local Timezone.',
     'top'                                       => 'Top',
+    'units'                                     => 'Item Units',
+    'units_tooltip'                             => 'One unit per line, for example pcs, kg, g, L. The first one is the default for new items. A unit typed on the item form is added here automatically.',
     'use_destination_based_tax'                 => 'Use Destination Based Tax',
     'user_timezone'                             => 'Local Timezone:',
     'website'                                   => 'Website',

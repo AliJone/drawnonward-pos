@@ -92,7 +92,7 @@
                     <tr class="item-row">
                         <td><?= esc($item['item_number']) ?></td>
                         <td class="item-name"><?= esc($item['name']) ?></td>
-                        <td><?= to_quantity_decimals($item['quantity']) ?></td>
+                        <td><?= to_quantity_decimals($item['quantity'], $item['unit'] ?? null) ?></td>
                         <td><?= to_currency($item['price']) ?></td>
                         <td><?= ($item['discount_type'] == FIXED) ? to_currency($item['discount']) : to_decimals($item['discount']) . '%' ?></td>
                         <td class="total-line"><?= to_currency($item['discounted_total']) ?></td>
